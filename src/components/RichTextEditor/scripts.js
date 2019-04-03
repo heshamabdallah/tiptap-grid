@@ -58,7 +58,7 @@ export default {
         ],
         content: '',
         onUpdate: (e) => {
-          console.log(JSON.stringify(this.editor.getJSON()))
+          // console.log(JSON.stringify(this.editor.getJSON()))
           //
         },
         onInit: (e) => {
