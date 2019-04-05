@@ -22,12 +22,15 @@ import {
 
 import GridContainer from './extensions/GridContainer.js'
 import GridItem from './extensions/GridItem.js'
+import { AlignTextLeft, AlignTextCenter, AlignTextRight, AlignTextJustify } from './extensions/AlignText.js'
 
+import EditorAlignTextControllers from './components/AlignTextControllers'
 import EditorStyleMenu from './components/StyleMenu'
 import EditorNodeMenu from './components/NodeMenu'
 
 export default {
   components: {
+    EditorAlignTextControllers,
     EditorStyleMenu,
     EditorNodeMenu,
     EditorMenuBar,
@@ -37,6 +40,10 @@ export default {
     return {
       editor: new Editor({
         extensions: [
+          new AlignTextLeft(),
+          new AlignTextCenter(),
+          new AlignTextRight(),
+          new AlignTextJustify(),
           new GridItem(),
           new GridContainer(),
           new Blockquote(),
@@ -57,9 +64,17 @@ export default {
           new History()
         ],
         content: '',
-        onUpdate: (e) => {
-          // console.log(JSON.stringify(this.editor.getJSON()))
-          //
+        onUpdate: ({ getJSON, getHTML, state, transaction }) => {
+          let json = getJSON(), html = getHTML()
+          if (String(html).search('data-type="grid_container"') === -1) {
+            this.setContentToDefault(1)
+          } else if (json.content && json.content.some(row => row.type !== 'grid_container')) {
+            // there is empty or foreign types
+            this.editor.setContent({
+              type: 'doc',
+              content: json.content.filter(row => row.type === 'grid_container')
+            })
+          }
         },
         onInit: (e) => {
           //
@@ -91,9 +106,16 @@ export default {
       }),
     }
   },
+  methods: {
+    setContentToDefault (duplicate) {
+      let content = ('{"type":"grid_item","content":[{"type":"paragraph"}]},').repeat(duplicate).slice(0, -1)
+      content = `{"type":"doc","content":[{"type":"grid_container","content":[${content}]}]}`
+      this.editor.setContent(JSON.parse(content))
+    }
+  },
   created () {
     setTimeout(() => {
-      this.editor.setContent(JSON.parse('{"type":"doc","content":[{"type":"grid_container","content":[{"type":"grid_item","attrs":{"styles":{"paddingDirection":"a","paddingSize":"0","marginDirection":"a","marginSize":"0","textAlign":"center"},"hasFormInput":false},"content":[{"type":"paragraph","content":[{"type":"text","text":"I\'m styled and aligned to "},{"type":"text","marks":[{"type":"bold"}],"text":"center"},{"type":"text","text":"!"}]}]},{"type":"grid_item","attrs":{"styles":{"paddingDirection":"a","paddingSize":"0","marginDirection":"a","marginSize":"0","textAlign":"right"},"hasFormInput":false},"content":[{"type":"paragraph","content":[{"type":"text","text":"I\'m styled and aligned to "},{"type":"text","marks":[{"type":"bold"}],"text":"right"},{"type":"text","text":"!"}]}]},{"type":"grid_item","attrs":{"styles":{"paddingDirection":"a","paddingSize":"0","marginDirection":"a","marginSize":"0","textAlign":"left"},"hasFormInput":false},"content":[{"type":"paragraph","content":[{"type":"text","text":"I\'m not styled and aligned by default to "},{"type":"text","marks":[{"type":"bold"}],"text":"left"},{"type":"text","text":"!"}]}]},{"type":"grid_item","attrs":{"styles":{"paddingDirection":"x","paddingSize":"4","marginDirection":"a","marginSize":"0","textAlign":"left"},"hasFormInput":false},"content":[{"type":"paragraph","content":[{"type":"text","text":"I\'m text with "},{"type":"text","marks":[{"type":"bold"}],"text":"x padding"},{"type":"text","text":"!"}]}]},{"type":"grid_item","attrs":{"styles":{"paddingDirection":"y","paddingSize":"2","marginDirection":"a","marginSize":"0","textAlign":"left"},"hasFormInput":false},"content":[{"type":"paragraph","content":[{"type":"text","text":"I\'m text with "},{"type":"text","marks":[{"type":"bold"}],"text":"y padding"},{"type":"text","text":"!"}]}]},{"type":"grid_item","attrs":{"styles":{"paddingDirection":"y","paddingSize":"3","marginDirection":"a","marginSize":"0","textAlign":"left"},"hasFormInput":true},"content":[{"type":"paragraph"}]}]}]}'))
+      this.setContentToDefault(10)
     }, 500)
   },
   beforeDestroy() {

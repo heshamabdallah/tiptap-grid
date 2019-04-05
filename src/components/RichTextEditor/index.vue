@@ -7,14 +7,6 @@
         <div class="menubar" slot-scope="{ commands, isActive }">
           <button
             class="menubar__button"
-            id="grid_container"
-            :class="{ 'is-active': isActive.grid_container() }"
-            @click="commands.grid_container">
-            <v-icon>playlist_add</v-icon>
-          </button>
-
-          <button
-            class="menubar__button"
             :class="{ 'is-active': isActive.bold() }"
             @click="commands.bold">
             <v-icon>format_bold</v-icon>
@@ -39,13 +31,6 @@
             :class="{ 'is-active': isActive.underline() }"
             @click="commands.underline">
             <v-icon>format_underline</v-icon>
-          </button>
-
-          <button
-            class="menubar__button"
-            :class="{ 'is-active': isActive.paragraph() }"
-            @click="commands.paragraph">
-            <v-icon>title</v-icon>
           </button>
 
           <button
@@ -114,6 +99,8 @@
             @click="commands.redo">
             <v-icon>redo</v-icon>
           </button>
+
+          <editor-align-text-controllers :commands="commands" :isActive="isActive"></editor-align-text-controllers>
 
         </div>
       </editor-menu-bar>

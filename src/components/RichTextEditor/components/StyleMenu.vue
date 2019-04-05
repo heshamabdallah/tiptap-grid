@@ -2,20 +2,15 @@
   <v-menu v-model="nodeMenuStyles.show" v-bind="bindOptions">
     <v-container fluid="fluid" grid-list-lg class="py-3">
       <v-layout row="row" wrap="wrap">
-        <v-flex class="d-flex" xs4 v-for="(align, index) in aligns" @click="onChangeTexAlign(align)" :key="index">
-          <div class="text-xs-center text-capitalize align-options" :class="{'text-align-active': align === nodeStyle.textAlign}">
-            {{align}}
-          </div>
-        </v-flex>
         <v-flex class="d-flex" xs12>
           <v-select class="pr-2" :items="directions" v-model="nodeStyle.paddingDirection">
-            <template v-slot:prepend><strong class="primary--text mt-1">p</strong></template>
+            <template v-slot:prepend><strong class="mt-2 mr-3">Padding</strong></template>
           </v-select>
           <v-select :items="sizes.slice(1)"  v-model="nodeStyle.paddingSize"></v-select>
         </v-flex>
         <v-flex class="d-flex" xs12>
           <v-select class="pr-2" :items="directions" v-model="nodeStyle.marginDirection">
-            <template v-slot:prepend><strong class="primary--text mt-1">m</strong></template>
+            <template v-slot:prepend><strong class="mt-2 mr-3">Margin</strong></template>
           </v-select>
           <v-select :items="sizes" v-model="nodeStyle.marginSize"></v-select>
         </v-flex>
@@ -25,19 +20,20 @@
 </template>
 
 <script>
-import { mapState, mapMutations } from 'vuex'
+import { mapState } from 'vuex'
 export default {
   data: () => ({
-    directions: ['t', 'b', 'l', 'r', 'x', 'y', 'a'],
-    sizes: ['auto', '0', '1', '2', '3', '4', '5'],
-    aligns: ['left', 'center', 'right']
+    directions: [
+      {text: 'All', value: 'a'},
+      {text: 'Top', value: 't'},
+      {text: 'Bottom', value: 'b'},
+      {text: 'Left', value: 'l'},
+      {text: 'Right', value: 'r'},
+      {text: 'X-Axis', value: 'x'},
+      {text: 'Y-Axis', value: 'y'},
+    ],
+    sizes: [{text: 'Auto', value: 'auto'}, '0', '1', '2', '3', '4', '5']
   }),
-  methods: {
-    ...mapMutations(['setNodeStyleKey']),
-    onChangeTexAlign(align) {
-      this.setNodeStyleKey({key: 'textAlign', value: align})
-    }
-  },
   computed: {
     ...mapState(['nodeMenuStyles', 'nodeStyle']),
     bindOptions () {

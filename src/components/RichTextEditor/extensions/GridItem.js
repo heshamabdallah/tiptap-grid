@@ -1,8 +1,7 @@
 import { Node, Plugin } from 'tiptap'
-import { wrappingInputRule, toggleWrap, splitToDefaultListItem, liftListItem, wrapInList, splitListItem, setBlockType } from 'tiptap-commands'
+import { liftListItem } from 'tiptap-commands'
 import { mapState, mapMutations } from 'vuex'
-import { markIsActive, getMarkAttrs, nodeIsActive } from 'tiptap-utils';
-import store from '@/store'
+import { GridItemSplitListItem } from './helpers.js'
 
 export default class GridItem extends Node {
 
@@ -13,12 +12,6 @@ export default class GridItem extends Node {
   get view () {
     return {
       props: ['node', 'updateAttrs', 'editable'],
-      data () {
-        return {
-          id: '',
-          inputModel: null
-        }
-      },
       methods: {
         ...mapMutations([
           'setNodeMenuStylesOptions',
@@ -82,22 +75,35 @@ export default class GridItem extends Node {
         ...mapState([
           'nodeHasFormInput',
           'nodeStyleDefault',
+          'formInputModels',
           'targetNodeId',
           'nodeStyle',
         ]),
         styles () {
           let styles = this.node.attrs.styles
           return [
-            `p${styles.paddingDirection}-${styles.paddingSize}`,
-            `m${styles.marginDirection}-${styles.marginSize}`,
-            `text-xs-${styles.textAlign}`
-          ]
+            styles.paddingSize && styles.paddingDirection ? `p${styles.paddingDirection}-${styles.paddingSize}` : null,
+            styles.marginDirection && styles.marginSize ? `m${styles.marginDirection}-${styles.marginSize}` : null,
+          ].filter(val => val)
         },
         isTargetNode () {
           return this.id === this.targetNodeId
         },
         hasFormInput () {
           return this.node.attrs.hasFormInput
+        },
+        id () {
+          return this.node.attrs.id
+        },
+        inputValue: {
+          get() {
+            return this.node.attrs.inputValue
+          },
+          set(inputValue) {
+            this.updateAttrs({
+              inputValue
+            })
+          }
         }
       },
       template: `
@@ -105,15 +111,21 @@ export default class GridItem extends Node {
           <span class="line-controller" :draggable="false" contenteditable="false" @click="onOpenNodeMenuOptions"></span>
           <div :class="styles">
             <template v-if="hasFormInput">
-              <v-text-field v-model="inputModel" :counter="10" label="placeholder" required></v-text-field>
+              <v-text-field v-model="inputValue" label="placeholder" required disabled></v-text-field>
             </template>
             <template v-else>
               <div ref="content" :contenteditable="editable.toString()"></div>
             </template>
           </div>
         </div>`.replace(/\s\s+/g, ''),
-        created () {
-          this.id = Math.random().toString(36).substr(2)
+        mounted () {
+          if (!this.node.attrs.id) {
+            setTimeout(() => {
+              this.updateAttrs({
+                id: Math.random().toString(36).substr(2)
+              }, 500)
+            })
+          }
         }
     }
   }
@@ -121,27 +133,33 @@ export default class GridItem extends Node {
   get schema () {
     return {
       attrs: {
+        id: {
+          default: null
+        },
         styles: {
           default: {}
         },
         hasFormInput: {
           default: false
+        },
+        inputValue: {
+          default: null
         }
       },
       draggable: true,
       content: 'block*',
-      toDOM: () => {
+      toDOM: (node) => {
         return ['div', {
-          'data-type': this.name
+          'data-type': this.name,
+          inputValue: node.attrs.inputValue
         }, 0];
       }
-
     }
   }
 
   keys({ type }) {
     return {
-      Enter: splitListItem(type),
+      Enter: GridItemSplitListItem(type),
       'Shift-Tab': liftListItem(type)
     }
   }

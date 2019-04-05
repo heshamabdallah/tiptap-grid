@@ -7,8 +7,7 @@ let nodeStyle = {
   paddingDirection: 'a',
   paddingSize: '0',
   marginDirection: 'a',
-  marginSize: '0',
-  textAlign: 'left'
+  marginSize: '0'
 }
 const store = new Vuex.Store({
   state: {
@@ -23,7 +22,8 @@ const store = new Vuex.Store({
       options: {}
     },
     nodeStyleDefault: JSON.parse(JSON.stringify(nodeStyle)),
-    nodeStyle: nodeStyle
+    nodeStyle: nodeStyle,
+    formInputModels: {}
   },
   mutations: {
     setNodeMenuModel (state, show) {
