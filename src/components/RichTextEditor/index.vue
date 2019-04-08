@@ -111,37 +111,50 @@
 
 <script src="./scripts.js"></script>
 
-<style src="./styles.css"></style>
+<style src="./styles.scss" lang="scss"></style>
 
 <style lang="scss">
 .editor {
   position: relative;
+  .menubar {
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1;
+    position: fixed;
+    background: #fff;
+    padding: 5px 15px;
+    box-shadow: 1px 1px 3px rgba(128, 128, 128, 0.3);
+  }
   .editor-content {
     .grid-container {
-      .grid-item {
-        position: relative;
-        .line-controller {
-          top: 0;
-          color: #aaa;
-          left: -50px;
-          width: 30px;
-          height: 30px;
-          display: block;
-          cursor: pointer;
-          position: absolute;
-          font-weight: normal;
-          transition: all 0.3s;
-          &::before {
-            top: -8px;
-            left: 5px;
-            width: 100%;
-            height: 100%;
-            content: '+';
-            font-size: 30px;
+      .grid-page {
+        padding: 2rem;
+        background: #fff;
+        margin-bottom: 1rem;
+        box-shadow: 1px 1px 3px rgba(128, 128, 128, 0.3);
+        .grid-item {
+          position: relative;
+          .line-controller {
+            top: 0;
+            left: -80px;
+            width: 30px;
+            height: 30px;
+            display: block;
+            cursor: pointer;
+            text-align: center;
             position: absolute;
-          }
-          &:hover {
-            background: #eee;
+            font-weight: normal;
+            transition: all 0.3s;
+            .v-icon {
+              transition: all 0.3s;
+              color: rgba(128, 128, 128, 0.2);
+            }
+            &:hover {
+              .v-icon {
+                color: rgb(128, 128, 128);
+              }
+            }
           }
         }
       }

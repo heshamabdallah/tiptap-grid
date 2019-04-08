@@ -107,8 +107,10 @@ export default class GridItem extends Node {
         }
       },
       template: `
-        <div class="grid-item">
-          <span class="line-controller" :draggable="false" contenteditable="false" @click="onOpenNodeMenuOptions"></span>
+        <div class="grid-item flex xs12" data-type="grid_item">
+          <span class="line-controller" :draggable="false" contenteditable="false" @click="onOpenNodeMenuOptions">
+            <v-icon>add</v-icon>
+          </span>
           <div :class="styles">
             <template v-if="hasFormInput">
               <v-text-field v-model="inputValue" label="placeholder" required disabled></v-text-field>
