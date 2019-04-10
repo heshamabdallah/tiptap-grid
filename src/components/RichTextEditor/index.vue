@@ -142,6 +142,7 @@
             height: 30px;
             display: block;
             cursor: pointer;
+            user-select: none;
             text-align: center;
             position: absolute;
             font-weight: normal;

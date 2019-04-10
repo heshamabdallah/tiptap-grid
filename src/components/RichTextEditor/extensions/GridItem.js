@@ -39,6 +39,7 @@ export default class GridItem extends Node {
             positionX: window.scrollX + rect.left,
             positionY: window.scrollY + rect.top + 30
           }
+          // console.log('options', options)
           this.setNodeMenuOptions(options)
           this.setNodeMenuStylesOptions(options)
         },

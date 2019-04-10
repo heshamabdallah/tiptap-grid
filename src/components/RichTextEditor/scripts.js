@@ -29,6 +29,7 @@ import EditorAlignTextControllers from './components/AlignTextControllers'
 import EditorStyleMenu from './components/StyleMenu'
 import EditorNodeMenu from './components/NodeMenu'
 
+let __setContentTimeOut = null
 export default {
   components: {
     EditorAlignTextControllers,
@@ -39,15 +40,16 @@ export default {
   },
   data() {
     return {
+      breakingIndexes: [],
       editor: new Editor({
         extensions: [
           new AlignTextLeft(),
           new AlignTextCenter(),
           new AlignTextRight(),
           new AlignTextJustify(),
-          new GridPage(),
-          new GridItem(),
           new GridContainer(),
+          new GridItem(),
+          new GridPage(),
           new Blockquote(),
           new BulletList(),
           new CodeBlock(),
@@ -77,7 +79,10 @@ export default {
               content: json.content.filter(row => row.type === 'grid_container')
             })
           } else {
-            this.handlePdfPages(json)
+            clearTimeout(__setContentTimeOut)
+            __setContentTimeOut = setTimeout(() => {
+              this.handlePdfPages(json)
+            }, 300)
           }
         },
         onInit: (e) => {
@@ -88,7 +93,9 @@ export default {
         editorProps: {
           handleDOMEvents: {
             keyup: (view, e) => {
-              //
+              if (!e.shiftKey && !e.ctrlKey && !e.altKey && e.keyCode === 13) {
+                // enter has been hitted!
+              }
             }
           },
           handleClick: (view, pos, e) => {
@@ -111,51 +118,55 @@ export default {
     }
   },
   methods: {
-    handlePdfPages (json) {
-      // A4 size: 595 pixels x 842 pixels
-      let content = json.content.filter(row => row.type === 'grid_container')
-        .map(row => row.content).flat()
-        .filter(row => row.type === 'grid_page')
-        .map(row => row.content).flat()
-        // .slice()
-
-      let container = this.editor.view.dom
-      if (container) {
-        let height = 0
-        let breakingIndexes = Array.from(container.querySelectorAll('[data-type="grid_item"]')).reduce((indexes, item, index) => {
-          height += item.offsetHeight
-          if (height > 842) {
-            height = 0
-            indexes.push(index)
-          }
-          return indexes
-        }, [])
-
-        if (breakingIndexes.length) {
-          breakingIndexes.push(content.length)
-          let prevBreakingIndexIndex = 0
-          let data = {
-            type: 'doc',
-            content: [{
-              type: 'grid_container',
-              content: breakingIndexes.map((breakingIndex, index, self) => {
-                prevBreakingIndexIndex = self[index - 1]
-                return {
-                  type: 'grid_page',
-                  content: content.splice(0, (!prevBreakingIndexIndex ? breakingIndex : (breakingIndex - prevBreakingIndexIndex)))
-                }
-              })
-            }]
-          }
-          // console.log('data', data)
-          this.editor.setContent(data)
-          // console.log('editor', this.editor)
-          // console.log('editor', this.editor.state.selection)
-          // this.editor.focus()
+    getBreakingData () {
+      let container = this.editor.view.dom, height = 0, lastIndex = 0
+      let gridItems = Array.from(container.querySelectorAll('[data-type="grid_item"]'))
+      return gridItems.reduce((indexes, item, index) => {
+        height += item.offsetHeight
+        if (height > 842 || (gridItems.length - 1 === index)) {
+          indexes.push({start: lastIndex, end: index, height: height})
+          lastIndex = index + 1
+          height = 0
         }
+        return indexes
+      }, [])
+    },
+    handlePdfPages (json) {
+      let breakingIndexes = this.getBreakingData()
+      let emptyBreakingIndexes = (!this.breakingIndexes.length && breakingIndexes.length > 1)
+      let newPageAdded = (this.breakingIndexes.length && this.breakingIndexes.length !== breakingIndexes.length)
+      let pagesHeightChanged = (this.breakingIndexes.length && this.breakingIndexes.map(row => row.height).join() !== breakingIndexes.map(row => row.height).join())
+      if (emptyBreakingIndexes || newPageAdded) {
+        // A4 size: 595 pixels x 842 pixels
+        let content = json.content.filter(row => row.type === 'grid_container')
+          .map(row => row.content).flat()
+          .filter(row => row.type === 'grid_page')
+          .map(row => row.content).flat()
+        let data = {
+          type: 'doc',
+          content: [{
+            type: 'grid_container',
+            content: breakingIndexes.map(row => {
+              return {
+                type: 'grid_page',
+                content: content.slice(row.start, row.end)
+              }
+            })
+          }]
+        }
+        let doc = document.documentElement
+        let topScroll = (window.pageYOffset || doc.scrollTop)  - (doc.clientTop || 0)
+
+        this.editor.setContent(data, false)
+        window.scrollTo(0, topScroll + 280)
+        this.editor.blur()
+        this.breakingIndexes = breakingIndexes
       }
     },
     setContentToDefault (duplicate) {
+      // let content = ('{"type":"grid_item","content":[{"type":"paragraph"}]},').repeat(duplicate).slice(0, -1)
+      // content = `{"type":"doc","content":[{"type":"grid_container","content":[${content}]}]}`
+      // this.editor.setContent(JSON.parse(content))
       let content = ('{"type":"grid_item","content":[{"type":"paragraph"}]},').repeat(duplicate).slice(0, -1)
       content = `{"type":"doc","content":[{"type":"grid_container","content":[{"type":"grid_page","content":[${content}]}]}]}`
       this.editor.setContent(JSON.parse(content))

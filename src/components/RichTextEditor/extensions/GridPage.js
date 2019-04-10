@@ -1,7 +1,7 @@
-import { Node } from 'tiptap'
-import { wrappingInputRule, wrapInList } from 'tiptap-commands'
+import { Node, Plugin } from 'tiptap'
+import { wrappingInputRule } from 'tiptap-commands'
 
-export default class GridContainer extends Node {
+export default class GridPage extends Node {
 
   get name() {
     return 'grid_page'
@@ -22,11 +22,7 @@ export default class GridContainer extends Node {
       }]
     }
   }
-
-  commands({ type, schema }) {
-    return () => wrapInList(type)
-  }
-
+  
   inputRules({ type }) {
     return [
       wrappingInputRule(/^\s*(\[ \])\s$/, type),
